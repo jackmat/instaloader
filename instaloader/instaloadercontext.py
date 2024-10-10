@@ -15,6 +15,7 @@ from typing import Any, Callable, Dict, Iterator, List, Optional, Union
 
 import requests
 import requests.utils
+import re
 
 from .exceptions import *
 
@@ -225,11 +226,16 @@ class InstaloaderContext:
         session.cookies = requests.utils.cookiejar_from_dict(sessiondata)
         session.headers.update(self._default_http_header())
         session.headers.update({'X-CSRFToken': session.cookies.get_dict()['csrftoken']})
+        response = session.get('https://www.instagram.com/')
+        appid = re.search('appId":"(\d*)', response.text)[1]
+        session.headers.update({'x-ig-app-id': appid})
+
         # Override default timeout behavior.
         # Need to silence mypy bug for this. See: https://github.com/python/mypy/issues/2427
         session.request = partial(session.request, timeout=self.request_timeout)  # type: ignore
         self._session = session
         self.username = username
+        # get app-id and set to request header 
 
     def save_session_to_file(self, sessionfile):
         """Not meant to be used directly, use :meth:`Instaloader.save_session_to_file`."""
