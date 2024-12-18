@@ -146,7 +146,7 @@ PostLocation.lat.__doc__ = "Latitude (:class:`float` or None)."
 PostLocation.lng.__doc__ = "Longitude (:class:`float` or None)."
 
 # This regular expression is by MiguelX413
-_hashtag_regex = re.compile(r"(?:#)((?:\w){1,150})")
+_hashtag_regex = re.compile(r"(?:%23)((?:\w){1,150})")
 
 # This regular expression is modified from jStassen, adjusted to use Python's \w to
 # support Unicode and a word/beginning of string delimiter at the beginning to ensure
@@ -171,7 +171,7 @@ class Post:
 
        L = Instaloader()
        for post in L.get_hashtag_posts(HASHTAG):
-           L.download_post(post, target='#'+HASHTAG)
+           L.download_post(post, target='%23'+HASHTAG)
 
     Might also be created with::
 
@@ -1828,7 +1828,7 @@ class Hashtag:
     To then download the Hashtag's Posts, do::
 
        for post in hashtag.get_posts():
-          L.download_post(post, target="#"+hashtag.name)
+          L.download_post(post, target="%23"+hashtag.name)
 
     Also, this class implements == and is hashable.
 
@@ -1862,9 +1862,7 @@ class Hashtag:
         return self._node["name"].lower()
 
     def _query(self, params):
-        json_response = self._context.get_json(
-    	"api/v1/tags/web_info/?tag_name={0}".format(self.name), params
-        )
+        json_response = self._context.get_json("explore/tags/{0}/".format(self.name), params)
         return json_response["graphql"]["hashtag"] if "graphql" in json_response else json_response["data"]
 
     def _obtain_metadata(self):
@@ -1938,7 +1936,7 @@ class Hashtag:
                 self._context,
                 lambda d: d["data"]["top"],
                 lambda m: Post.from_iphone_struct(self._context, m),
-                f"explore/tags/{self.name}/",
+                f"explore/search/keyword/{self.name}/",
                 self._metadata("top"),
             )
 
@@ -1974,7 +1972,7 @@ class Hashtag:
                 self._context,
                 lambda d: d["data"]["recent"],
                 lambda m: Post.from_iphone_struct(self._context, m),
-                f"explore/tags/{self.name}/",
+                f"explore/search/keyword/{self.name}/",
                 self._metadata("recent"),
             )
 
@@ -2018,7 +2016,7 @@ class Hashtag:
             lambda d: d['data']['hashtag']['edge_hashtag_to_media'],
             lambda n: Post(self._context, n),
             {'tag_name': self.name},
-            f"https://www.instagram.com/explore/tags/{self.name}/"
+            f"https://www.instagram.com/explore/search/keyword/{self.name}"
         )
 
 
